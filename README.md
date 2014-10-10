@@ -4,6 +4,10 @@ A reusable draggable component for [Om](https://github.com/swannodette/om).
 
 # Usage
 
+Add this to your project:
+
+[![Clojars Project](http://clojars.org/ff-om-draggable/latest-version.svg)](http://clojars.org/ff-om-draggable)
+
 ```clj
 (ns example.core
   (:require [om.core :as om :include-macros true]

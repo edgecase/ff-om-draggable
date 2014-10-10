@@ -16,7 +16,6 @@
                (dom/img #js {:src (person :avatar)})
                (dom/div nil (person :name))))))
 
-
 (def draggable-person-view
   (draggable-item person-view [:position]))
 
@@ -31,6 +30,4 @@
 (om/root
   people-view
   app-state
-  {:target (. js/document (getElementById "app"))
-   :tx-listen #(.log js/console "change")})
-
+  {:target (. js/document (getElementById "app"))})
