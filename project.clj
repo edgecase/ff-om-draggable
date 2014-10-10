@@ -7,7 +7,8 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-2342"]
                  [org.clojure/core.async "0.1.338.0-5c5012-alpha"]
-                 [om "0.7.3"]]
+                 [om "0.7.3"]
+                 [prismatic/dommy "0.1.3"]]
 
   :plugins [[lein-cljsbuild "1.0.4-SNAPSHOT"]]
 
