@@ -61,9 +61,7 @@
                   (set-style! node :top top :left left))))))
       om/IRenderState
       (render-state [_ state]
-        (dom/div (clj->js {:style {:position "absolute"
-                                   :top (get-in cursor (conj position-cursor :top))
-                                   :left (get-in cursor (conj position-cursor :left))}
+        (dom/div (clj->js {:style (conj {:position "absolute"} (get-in cursor position-cursor))
                            :onMouseDown #(move-start % owner)
                            :onMouseUp #(move-end % owner cursor position-cursor)})
                  (om/build view cursor))))))
