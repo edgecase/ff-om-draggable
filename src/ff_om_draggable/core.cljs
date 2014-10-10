@@ -28,11 +28,13 @@
     (om/set-state! owner :position-offset position-offset)))
 
 (defn move-end
-  [e owner]
+  [e owner cursor position-cursor]
   (.preventDefault e)
   (let [mouse-position (om/get-state owner :mouse-position)
-        position-tap (om/get-state owner :position-tap)]
-    (untap mouse-position position-tap)))
+        position-tap (om/get-state owner :position-tap)
+        position (om/get-state owner :position)]
+    (untap mouse-position position-tap)
+    (om/update! cursor position-cursor position)))
 
 (defn draggable-item
   [view position-cursor]
@@ -41,8 +43,8 @@
       om/IInitState
       (init-state [_]
         {:mouse-position (mult mouse-position)
-         :position {:top (get-in cursor (position-cursor :top))
-                    :left (get-in cursor (position-cursor :left))}
+         :position {:left (get-in cursor (conj position-cursor :left))
+                    :top (get-in cursor (conj position-cursor :top))}
          :position-tap (chan)
          :position-offset nil})
       om/IWillMount
@@ -59,6 +61,6 @@
                                    :top (-> state :position :top)
                                    :left (-> state :position :left)}
                            :onMouseDown #(move-start % owner)
-                           :onMouseUp #(move-end % owner)})
+                           :onMouseUp #(move-end % owner cursor position-cursor)})
                  (om/build view cursor))))))
 

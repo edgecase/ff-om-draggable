@@ -18,8 +18,7 @@
 
 
 (def draggable-person-view
-  (draggable-item person-view {:top [:position :top]
-                               :left [:position :left]}))
+  (draggable-item person-view [:position]))
 
 (defn people-view
   [app owner]
@@ -32,5 +31,6 @@
 (om/root
   people-view
   app-state
-  {:target (. js/document (getElementById "app"))})
+  {:target (. js/document (getElementById "app"))
+   :tx-listen #(.log js/console "change")})
 
