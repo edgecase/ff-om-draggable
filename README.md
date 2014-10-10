@@ -1,3 +1,5 @@
+[![Clojars Project](http://clojars.org/ff-om-draggable/latest-version.svg)](http://clojars.org/ff-om-draggable)
+
 # ff-om-draggable
 
 A Clojure library designed to ... well, that part is up to you.
