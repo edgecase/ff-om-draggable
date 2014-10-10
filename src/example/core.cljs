@@ -5,6 +5,7 @@
 
 (def app-state (atom {:people [{:name "Cosby" :avatar "images/cosby.png" :position {:left 100 :top 200}}
                                {:name "Jordan" :avatar "images/jordan.png" :position {:left 300 :top 30}}
+                               {:name "Uncle Neo" :avatar "images/neo.png" :position {:left 500 :top 200}}
                                {:name "Chappelle" :avatar "images/chappelle.png" :position {:left 200 :top 400}}]}))
 
 (defn person-view
