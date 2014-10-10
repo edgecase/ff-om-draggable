@@ -1,4 +1,4 @@
-(defproject ff-om-draggable "0.0.4"
+(defproject ff-om-draggable "0.0.5"
   :description "FIXME: write description"
   :url "https://github.com/neo/ff-om-draggable"
   :license {:name "Eclipse Public License"

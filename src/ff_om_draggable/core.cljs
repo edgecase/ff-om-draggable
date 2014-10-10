@@ -13,8 +13,9 @@
   (let [position {:left (.-clientX e) :top (.-clientY e)}]
     (put! channel position)))
 
-(def mouse-position (chan (sliding-buffer 1)))
-(js/window.addEventListener "mousemove" #(update-mouse-position % mouse-position))
+(def position-chan (chan (sliding-buffer 1)))
+(def mouse-position (mult position-chan))
+(js/window.addEventListener "mousemove" #(update-mouse-position % position-chan))
 
 (defn target-position
   [e]
@@ -24,8 +25,7 @@
 (defn move-start
   [e owner]
   (.preventDefault e)
-  (let [mouse-position (om/get-state owner :mouse-position)
-        mouse-tap (om/get-state owner :mouse-tap)
+  (let [mouse-tap (om/get-state owner :mouse-tap)
         current-position (target-position e)
         position-offset {:top (- (.-clientY e) (current-position :top))
                          :left (- (.-clientX e) (current-position :left))}]
@@ -35,8 +35,7 @@
 (defn move-end
   [e owner cursor position-cursor]
   (.preventDefault e)
-  (let [mouse-position (om/get-state owner :mouse-position)
-        mouse-tap (om/get-state owner :mouse-tap)]
+  (let [mouse-tap (om/get-state owner :mouse-tap)]
     (untap mouse-position mouse-tap)
     (om/update! cursor position-cursor (target-position e))))
 
@@ -46,8 +45,7 @@
     (reify
       om/IInitState
       (init-state [_]
-        {:mouse-position (mult mouse-position)
-         :mouse-tap (chan)
+        {:mouse-tap (chan)
          :position-offset nil})
       om/IWillMount
       (will-mount [_]
