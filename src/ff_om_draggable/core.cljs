@@ -16,26 +16,29 @@
 (def mouse-position (chan (sliding-buffer 1)))
 (js/window.addEventListener "mousemove" #(update-mouse-position % mouse-position))
 
+(defn target-position
+  [e]
+  (let [rect (.getBoundingClientRect (.-currentTarget e))]
+    {:top (.-top rect) :left (.-left rect)}))
+
 (defn move-start
   [e owner]
   (.preventDefault e)
   (let [mouse-position (om/get-state owner :mouse-position)
-        position-tap (om/get-state owner :position-tap)
-        current-position (.getBoundingClientRect (.-currentTarget e))
-        position-offset {:top (- (.-clientY e) (.-top current-position))
-                         :left (- (.-clientX e) (.-left current-position))}]
-    (tap mouse-position position-tap)
+        mouse-tap (om/get-state owner :mouse-tap)
+        current-position (target-position e)
+        position-offset {:top (- (.-clientY e) (current-position :top))
+                         :left (- (.-clientX e) (current-position :left))}]
+    (tap mouse-position mouse-tap)
     (om/set-state! owner :position-offset position-offset)))
 
 (defn move-end
   [e owner cursor position-cursor]
   (.preventDefault e)
   (let [mouse-position (om/get-state owner :mouse-position)
-        position-tap (om/get-state owner :position-tap)
-        position (.getBoundingClientRect (.-currentTarget e))]
-    (untap mouse-position position-tap)
-    (om/update! cursor position-cursor {:top (.-top position)
-                                        :left (.-left position)})))
+        mouse-tap (om/get-state owner :mouse-tap)]
+    (untap mouse-position mouse-tap)
+    (om/update! cursor position-cursor (target-position e))))
 
 (defn draggable-item
   [view position-cursor]
@@ -44,11 +47,11 @@
       om/IInitState
       (init-state [_]
         {:mouse-position (mult mouse-position)
-         :position-tap (chan)
+         :mouse-tap (chan)
          :position-offset nil})
       om/IWillMount
       (will-mount [_]
-        (let [position (om/get-state owner :position-tap)]
+        (let [position (om/get-state owner :mouse-tap)]
           (go (while true
                 (let [mouse (<! position)
                       offset (om/get-state owner :position-offset)
