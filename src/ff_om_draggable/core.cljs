@@ -59,6 +59,6 @@
                                    :top (-> state :position :top)
                                    :left (-> state :position :left)}
                            :onMouseDown #(move-start % owner)
-                           :onMouseUp #(move-end % owner cursor)})
+                           :onMouseUp #(move-end % owner)})
                  (om/build view cursor))))))
 
