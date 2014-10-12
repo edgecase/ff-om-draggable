@@ -1,4 +1,4 @@
-(ns ff-draggable.core
+(ns ff-om-draggable.core
   (:require [cljs.core.async :as async :refer [put! <! mult untap tap chan sliding-buffer]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true])
