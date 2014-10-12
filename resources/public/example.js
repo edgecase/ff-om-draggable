@@ -9,10 +9,5 @@ goog.addDependency("../cljs/core/async/impl/ioc_helpers.js", ['cljs.core.async.i
 goog.addDependency("../cljs/core/async/impl/timers.js", ['cljs.core.async.impl.timers'], ['cljs.core.async.impl.channels', 'cljs.core.async.impl.dispatch', 'cljs.core', 'cljs.core.async.impl.protocols']);
 goog.addDependency("../cljs/core/async.js", ['cljs.core.async'], ['cljs.core.async.impl.channels', 'cljs.core.async.impl.dispatch', 'cljs.core', 'cljs.core.async.impl.buffers', 'cljs.core.async.impl.protocols', 'cljs.core.async.impl.ioc_helpers', 'cljs.core.async.impl.timers']);
 goog.addDependency("../om/core.js", ['om.core'], ['cljs.core', 'om.dom', 'goog.ui.IdGenerator']);
-goog.addDependency("../dommy/utils.js", ['dommy.utils'], ['cljs.core']);
-goog.addDependency("../clojure/string.js", ['clojure.string'], ['goog.string', 'cljs.core', 'goog.string.StringBuffer']);
-goog.addDependency("../dommy/attrs.js", ['dommy.attrs'], ['cljs.core', 'dommy.utils', 'clojure.string']);
-goog.addDependency("../dommy/template.js", ['dommy.template'], ['cljs.core', 'dommy.attrs', 'dommy.utils', 'clojure.string']);
-goog.addDependency("../dommy/core.js", ['dommy.core'], ['dommy.template', 'cljs.core', 'dommy.attrs', 'dommy.utils', 'clojure.string']);
-goog.addDependency("../ff_draggable/core.js", ['ff_draggable.core'], ['cljs.core', 'om.dom', 'cljs.core.async', 'om.core', 'dommy.core']);
+goog.addDependency("../ff_draggable/core.js", ['ff_draggable.core'], ['cljs.core', 'om.dom', 'cljs.core.async', 'om.core']);
 goog.addDependency("../example/core.js", ['example.core'], ['cljs.core', 'om.dom', 'om.core', 'ff_draggable.core']);

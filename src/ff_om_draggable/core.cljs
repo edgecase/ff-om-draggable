@@ -1,8 +1,7 @@
 (ns ff-draggable.core
   (:require [cljs.core.async :as async :refer [put! <! mult untap tap chan sliding-buffer]]
             [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]
-            [dommy.core :refer [set-style!]])
+            [om.dom :as dom :include-macros true])
   (:require-macros [cljs.core.async.macros :as am :refer [go]]))
 
 (enable-console-print!)
@@ -30,6 +29,7 @@
         position-offset {:top (- (.-clientY e) (current-position :top))
                          :left (- (.-clientX e) (current-position :left))}]
     (tap mouse-position mouse-tap)
+    (om/set-state! owner :is-dragging true)
     (om/set-state! owner :position-offset position-offset)))
 
 (defn move-end
@@ -37,15 +37,24 @@
   (.preventDefault e)
   (let [mouse-tap (om/get-state owner :mouse-tap)]
     (untap mouse-position mouse-tap)
+    (om/set-state! owner :is-dragging false)
     (om/update! cursor position-cursor (target-position e))))
+
+(defn position
+  [item position-cursor state]
+  (if (state :is-dragging)
+    (state :position)
+    (get-in item position-cursor)))
 
 (defn draggable-item
   [view position-cursor]
-  (fn [cursor owner]
+  (fn [item owner]
     (reify
       om/IInitState
       (init-state [_]
-        {:mouse-tap (chan)
+        {:is-dragging false
+         :position (get-in item position-cursor)
+         :mouse-tap (chan)
          :position-offset nil})
       om/IWillMount
       (will-mount [_]
@@ -56,11 +65,10 @@
                       node (om/get-node owner)
                       top (- (mouse :top) (offset :top))
                       left (- (mouse :left) (offset :left))]
-                  (set-style! node :top top :left left))))))
+                  (om/set-state! owner :position {:top top :left left}))))))
       om/IRenderState
       (render-state [_ state]
-        (dom/div (clj->js {:style (conj {:position "absolute"} (get-in cursor position-cursor))
+        (dom/div (clj->js {:style (conj {:position "absolute"} (position item position-cursor state))
                            :onMouseDown #(move-start % owner)
-                           :onMouseUp #(move-end % owner cursor position-cursor)})
-                 (om/build view cursor))))))
-
+                           :onMouseUp #(move-end % owner item position-cursor)})
+                 (om/build view item))))))
