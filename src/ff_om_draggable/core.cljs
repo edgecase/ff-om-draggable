@@ -6,15 +6,10 @@
 
 (enable-console-print!)
 
-(defn update-mouse-position
-  [e channel]
-  (.preventDefault e)
-  (let [position {:left (.-clientX e) :top (.-clientY e)}]
-    (put! channel position)))
-
 (def position-chan (chan (sliding-buffer 1)))
-(def mouse-position (mult position-chan))
-(js/window.addEventListener "mousemove" #(update-mouse-position % position-chan))
+(def mouse-mult (mult position-chan))
+(js/window.addEventListener "mousemove"
+                            #(put! position-chan {:left (.-clientX %) :top (.-clientY %)}))
 
 (defn target-position
   [e]
@@ -28,7 +23,7 @@
         current-position (target-position e)
         position-offset {:top (- (.-clientY e) (current-position :top))
                          :left (- (.-clientX e) (current-position :left))}]
-    (tap mouse-position mouse-tap)
+    (tap mouse-mult mouse-tap)
     (om/set-state! owner :is-dragging true)
     (om/set-state! owner :position-offset position-offset)))
 
@@ -36,7 +31,7 @@
   [e owner cursor position-cursor]
   (.preventDefault e)
   (let [mouse-tap (om/get-state owner :mouse-tap)]
-    (untap mouse-position mouse-tap)
+    (untap mouse-mult mouse-tap)
     (om/set-state! owner :is-dragging false)
     (om/update! cursor position-cursor (target-position e))))
 
@@ -62,7 +57,6 @@
           (go (while true
                 (let [mouse (<! position)
                       offset (om/get-state owner :position-offset)
-                      node (om/get-node owner)
                       top (- (mouse :top) (offset :top))
                       left (- (mouse :left) (offset :left))]
                   (om/set-state! owner :position {:top top :left left}))))))
