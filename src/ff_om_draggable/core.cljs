@@ -2,7 +2,7 @@
   (:require [cljs.core.async :as async :refer [put! <! mult untap tap chan sliding-buffer]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true])
-  (:require-macros [cljs.core.async.macros :as am :refer [go]]))
+  (:require-macros [cljs.core.async.macros :as am :refer [go-loop]]))
 
 (enable-console-print!)
 
@@ -21,23 +21,25 @@
   (.preventDefault e)
   (let [mouse-tap (om/get-state owner :mouse-tap)
         current-position (target-position e)
-        position-offset {:top (- (.-clientY e) (current-position :top))
-                         :left (- (.-clientX e) (current-position :left))}]
-    (tap mouse-mult mouse-tap)
-    (om/set-state! owner :is-dragging true)
-    (om/set-state! owner :position-offset position-offset)))
+        offset {:top (- (.-clientY e) (current-position :top))
+                :left (- (.-clientX e) (current-position :left))}
+        new-position (fn [mouse]
+                       {:top (- (mouse :top) (offset :top))
+                        :left (- (mouse :left) (offset :left))})]
+    (om/set-state! owner :new-position new-position)
+    (tap mouse-mult mouse-tap)))
 
 (defn move-end
   [e owner cursor position-cursor]
   (.preventDefault e)
   (let [mouse-tap (om/get-state owner :mouse-tap)]
     (untap mouse-mult mouse-tap)
-    (om/set-state! owner :is-dragging false)
-    (om/update! cursor position-cursor (target-position e))))
+    (om/update! cursor position-cursor (target-position e))
+    (om/set-state! owner :new-position nil)))
 
 (defn position
   [item position-cursor state]
-  (if (state :is-dragging)
+  (if (state :new-position)
     (state :position)
     (get-in item position-cursor)))
 
@@ -47,19 +49,17 @@
     (reify
       om/IInitState
       (init-state [_]
-        {:is-dragging false
-         :position (get-in item position-cursor)
+        {:position (get-in item position-cursor)
          :mouse-tap (chan)
-         :position-offset nil})
+         :new-position nil})
       om/IWillMount
       (will-mount [_]
         (let [position (om/get-state owner :mouse-tap)]
-          (go (while true
-                (let [mouse (<! position)
-                      offset (om/get-state owner :position-offset)
-                      top (- (mouse :top) (offset :top))
-                      left (- (mouse :left) (offset :left))]
-                  (om/set-state! owner :position {:top top :left left}))))))
+          (go-loop []
+            (let [mouse (<! position)
+                  new-position (om/get-state owner :new-position)]
+              (om/set-state! owner :position (new-position mouse)))
+            (recur))))
       om/IRenderState
       (render-state [_ state]
         (dom/div (clj->js {:style (conj {:position "absolute"} (position item position-cursor state))
