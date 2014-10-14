@@ -24,28 +24,20 @@
     {:top (.-top rect) :left (.-left rect)}))
 
 (defn touch-start
-  [e owner]
+  [e owner current-position]
   (.preventDefault e)
-  (let [user-movement (om/get-state owner :user-movement)
-        touch (aget (.-changedTouches e) 0)
-        current-position (target-position e)
-        offset {:top (- (.-clientY touch) (current-position :top))
-                :left (- (.-clientX touch) (current-position :left))}
-        new-position (fn [mouse]
-                       {:top (- (mouse :top) (offset :top))
-                        :left (- (mouse :left) (offset :left))})]
+  (move-start (aget (.-changedTouches e) 0) owner current-position))
 
-    (om/set-state! owner :new-position new-position)
-    (tap mouse-mult user-movement)))
-
+(defn mouse-start
+  [e owner current-position]
+  (.preventDefault e)
+  (move-start e owner current-position))
 
 (defn move-start
-  [e owner]
-  (.preventDefault e)
+  [event-position owner current-position]
   (let [user-movement (om/get-state owner :user-movement)
-        current-position (target-position e)
-        offset {:top (- (.-clientY e) (current-position :top))
-                :left (- (.-clientX e) (current-position :left))}
+        offset {:top (- (.-clientY event-position) (current-position :top))
+                :left (- (.-clientX event-position) (current-position :left))}
         new-position (fn [mouse]
                        {:top (- (mouse :top) (offset :top))
                         :left (- (mouse :left) (offset :left))})]
@@ -57,7 +49,7 @@
   (.preventDefault e)
   (let [user-movement (om/get-state owner :user-movement)]
     (untap mouse-mult user-movement)
-    (om/update! cursor position-cursor (target-position e))
+    (om/update! cursor position-cursor (om/get-state owner :position))
     (om/set-state! owner :new-position nil)))
 
 (defn position
@@ -85,9 +77,10 @@
             (recur))))
       om/IRenderState
       (render-state [_ state]
-        (dom/div (clj->js {:style (conj {:position "absolute"} (position item position-cursor state))
-                           :onTouchStart #(touch-start % owner)
-                           :onMouseDown #(move-start % owner)
-                           :onTouchEnd #(move-end % owner item position-cursor)
-                           :onMouseUp #(move-end % owner item position-cursor)})
-                 (om/build view item))))))
+        (let [current-position (position item position-cursor state)]
+          (dom/div (clj->js {:style (conj {:position "absolute"} current-position)
+                             :onTouchStart #(touch-start % owner @current-position)
+                             :onMouseDown #(mouse-start % owner @current-position)
+                             :onTouchEnd #(move-end % owner item position-cursor)
+                             :onMouseUp #(move-end % owner item position-cursor)})
+                   (om/build view item)))))))
