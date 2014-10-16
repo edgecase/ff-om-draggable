@@ -23,16 +23,6 @@
   (let [rect (.getBoundingClientRect (.-currentTarget e))]
     {:top (.-top rect) :left (.-left rect)}))
 
-(defn touch-start
-  [e owner current-position]
-  (.preventDefault e)
-  (move-start (aget (.-changedTouches e) 0) owner current-position))
-
-(defn mouse-start
-  [e owner current-position]
-  (.preventDefault e)
-  (move-start e owner current-position))
-
 (defn move-start
   [event-position owner current-position]
   (let [user-movement (om/get-state owner :user-movement)
@@ -43,6 +33,16 @@
                         :left (- (mouse :left) (offset :left))})]
     (om/set-state! owner :new-position new-position)
     (tap mouse-mult user-movement)))
+
+(defn touch-start
+  [e owner current-position]
+  (.preventDefault e)
+  (move-start (aget (.-changedTouches e) 0) owner current-position))
+
+(defn mouse-start
+  [e owner current-position]
+  (.preventDefault e)
+  (move-start e owner current-position))
 
 (defn move-end
   [e owner cursor position-cursor]
