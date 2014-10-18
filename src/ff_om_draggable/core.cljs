@@ -34,17 +34,14 @@
 
 (defn touch-start
   [e owner current-position]
-  (.preventDefault e)
   (move-start (aget (.-changedTouches e) 0) owner current-position))
 
 (defn mouse-start
   [e owner current-position]
-  (.preventDefault e)
   (move-start e owner current-position))
 
 (defn move-end
   [e owner cursor position-cursor]
-  (.preventDefault e)
   (let [user-movement (om/get-state owner :user-movement)]
     (untap mouse-mult user-movement)
     (om/update! cursor position-cursor (om/get-state owner :position))

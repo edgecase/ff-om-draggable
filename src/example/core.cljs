@@ -14,7 +14,7 @@
     om/IRender
     (render [_]
       (dom/div nil
-               (dom/img #js {:src (person :avatar)})
+               (dom/img #js {:src (person :avatar) :draggable false})
                (dom/div nil (person :name))))))
 
 (def draggable-person-view
