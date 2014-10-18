@@ -1,4 +1,4 @@
-(defproject ff-om-draggable "0.0.12"
+(defproject ff-om-draggable "0.0.13"
   :description "A draggable component from Om"
   :url "https://github.com/neo/ff-om-draggable"
   :license {:name "Eclipse Public License"
