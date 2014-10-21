@@ -23,14 +23,15 @@
 
 (defn move-start
   [event-position owner current-position]
-  (let [user-movement (om/get-state owner :user-movement)
-        offset {:top (- (.-clientY event-position) (current-position :top))
-                :left (- (.-clientX event-position) (current-position :left))}
-        new-position (fn [mouse]
-                       {:top (- (mouse :top) (offset :top))
-                        :left (- (mouse :left) (offset :left))})]
-    (om/set-state! owner :new-position new-position)
-    (tap mouse-mult user-movement)))
+  (when (not (om/get-state owner :disable-dragging))
+    (let [user-movement (om/get-state owner :user-movement)
+          offset {:top (- (.-clientY event-position) (current-position :top))
+                  :left (- (.-clientX event-position) (current-position :left))}
+          new-position (fn [mouse]
+                         {:top (- (mouse :top) (offset :top))
+                          :left (- (mouse :left) (offset :left))})]
+      (om/set-state! owner :new-position new-position)
+      (tap mouse-mult user-movement))))
 
 (defn touch-start
   [e owner current-position]
@@ -42,10 +43,11 @@
 
 (defn move-end
   [e owner cursor position-cursor]
-  (let [user-movement (om/get-state owner :user-movement)]
-    (untap mouse-mult user-movement)
-    (om/update! cursor position-cursor (om/get-state owner :position))
-    (om/set-state! owner :new-position nil)))
+  (when (not (om/get-state owner :disable-dragging))
+    (let [user-movement (om/get-state owner :user-movement)]
+      (untap mouse-mult user-movement)
+      (om/update! cursor position-cursor (om/get-state owner :position))
+      (om/set-state! owner :new-position nil))))
 
 (defn position
   [item position-cursor state]
@@ -61,6 +63,7 @@
       (init-state [_]
         {:position (get-in item position-cursor)
          :user-movement (chan)
+         :disable-dragging false
          :new-position nil})
       om/IWillMount
       (will-mount [_]
@@ -78,4 +81,4 @@
                              :onMouseDown #(mouse-start % owner @current-position)
                              :onTouchEnd #(move-end % owner item position-cursor)
                              :onMouseUp #(move-end % owner item position-cursor)})
-                   (om/build view item)))))))
+                   (om/build view item {:init-state {:draggable owner}})))))))
