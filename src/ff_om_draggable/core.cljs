@@ -79,10 +79,11 @@
                 (when disabled (move-end owner item position-cursor)))))))
       om/IRenderState
       (render-state [_ state]
-        (let [current-position (position item position-cursor state)]
+        (let [current-position (position item position-cursor state)
+              primative-value #(if (om/cursor? %) @% %)]
           (dom/div (clj->js {:style (conj {:position "absolute"} current-position)
-                             :onTouchStart #(touch-start % owner @current-position)
-                             :onMouseDown #(mouse-start % owner @current-position)
+                             :onTouchStart #(touch-start % owner (primative-value current-position))
+                             :onMouseDown #(mouse-start % owner (primative-value current-position))
                              :onTouchEnd #(move-end owner item position-cursor)
                              :onMouseUp #(move-end owner item position-cursor)})
                    (om/build view item {:init-state {:draggable (om/get-state owner :draggable)}})))))))
