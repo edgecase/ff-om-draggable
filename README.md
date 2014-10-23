@@ -45,8 +45,9 @@ In our example `[:position]` resolves to `{:left 100 :top 200}` because the
 data given to the `sample-view` is `app`, and `app` contains the position
 information at the `:position` key.
 
-The view given to `draggable-item` can access the `draggable-item` view's owner
-by calling (om/get-state owner :draggable) from given view.
+The view passed into `draggable-item` is initialized with a `:draggable` 
+channel. This channel can be used to enable and disable dragging of a
+component.
 
 
 ```clj
@@ -56,16 +57,13 @@ by calling (om/get-state owner :draggable) from given view.
     om/IRender
     (render [_]
       (let [draggable (om/get-state owner :draggable)]
-        (om/set-state! draggable :disable-dragging true)))
+        (put! draggable false)))
 
 (def draggable-sample-view
   (draggable-item sample-view [:position]))
 ```
-
-`sample-view` now has a handle to the `draggable-item` view. This allows
-the `sample-view` to access the `draggable-item`'s state such as position,
-and also set the `disable-dragging` state from `sample-view`.
-
+In the example above with `put!` false on `draggable` to disable
+dragging.
 
 # Example
 

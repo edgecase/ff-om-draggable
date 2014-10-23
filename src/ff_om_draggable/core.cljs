@@ -2,7 +2,7 @@
   (:require [cljs.core.async :as async :refer [put! <! mult untap tap chan sliding-buffer]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true])
-  (:require-macros [cljs.core.async.macros :as am :refer [go-loop]]))
+  (:require-macros [cljs.core.async.macros :as am :refer [go]]))
 
 (def position-chan (chan (sliding-buffer 1)))
 (def mouse-mult (mult position-chan))
@@ -23,7 +23,7 @@
 
 (defn move-start
   [event-position owner current-position]
-  (when (not (om/get-state owner :disable-dragging))
+  (when (not (om/get-state owner :disabled))
     (let [user-movement (om/get-state owner :user-movement)
           offset {:top (- (.-clientY event-position) (current-position :top))
                   :left (- (.-clientX event-position) (current-position :left))}
@@ -42,12 +42,11 @@
   (move-start e owner current-position))
 
 (defn move-end
-  [e owner cursor position-cursor]
-  (when (not (om/get-state owner :disable-dragging))
-    (let [user-movement (om/get-state owner :user-movement)]
-      (untap mouse-mult user-movement)
-      (om/update! cursor position-cursor (om/get-state owner :position))
-      (om/set-state! owner :new-position nil))))
+  [owner cursor position-cursor]
+  (let [user-movement (om/get-state owner :user-movement)]
+    (untap mouse-mult user-movement)
+    (om/update! cursor position-cursor (om/get-state owner :position))
+    (om/set-state! owner :new-position nil)))
 
 (defn position
   [item position-cursor state]
@@ -63,22 +62,27 @@
       (init-state [_]
         {:position (get-in item position-cursor)
          :user-movement (chan)
-         :disable-dragging false
+         :draggable (chan)
+         :disabled false
          :new-position nil})
       om/IWillMount
       (will-mount [_]
         (let [position (om/get-state owner :user-movement)]
-          (go-loop []
+          (go (while true
             (let [mouse (<! position)
                   new-position (om/get-state owner :new-position)]
-              (om/set-state! owner :position (new-position mouse)))
-            (recur))))
+              (om/set-state! owner :position (new-position mouse)))))
+          (go (while true
+              (let [draggable (om/get-state owner :draggable)
+                    disabled (not (<! draggable))]
+                (om/set-state! owner :disabled disabled)
+                (when disabled (move-end owner item position-cursor)))))))
       om/IRenderState
       (render-state [_ state]
         (let [current-position (position item position-cursor state)]
           (dom/div (clj->js {:style (conj {:position "absolute"} current-position)
                              :onTouchStart #(touch-start % owner @current-position)
                              :onMouseDown #(mouse-start % owner @current-position)
-                             :onTouchEnd #(move-end % owner item position-cursor)
-                             :onMouseUp #(move-end % owner item position-cursor)})
-                   (om/build view item {:init-state {:draggable owner}})))))))
+                             :onTouchEnd #(move-end owner item position-cursor)
+                             :onMouseUp #(move-end owner item position-cursor)})
+                   (om/build view item {:init-state {:draggable (om/get-state owner :draggable)}})))))))
