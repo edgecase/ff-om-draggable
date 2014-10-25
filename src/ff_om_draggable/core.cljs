@@ -23,22 +23,13 @@
 (.addEventListener js/window "mousemove" #(track-movement % e-position))
 (.addEventListener js/window "touchmove" #(track-movement % touch-move))
 
-(defn target-position
-  [e]
-  (let [rect (.getBoundingClientRect (.-currentTarget e))]
-    {:top (.-top rect) :left (.-left rect)}))
-
 (defn move-start
-  [event-position owner current-position]
+  [e owner current-position]
   (when (not (om/get-state owner :disabled))
-    (let [user-movement (om/get-state owner :user-movement)
-          offset {:top (- (.-clientY event-position) (current-position :top))
-                  :left (- (.-clientX event-position) (current-position :left))}
-          new-position (fn [mouse]
-                         {:top (- (mouse :top) (offset :top))
-                          :left (- (mouse :left) (offset :left))})]
-      (om/set-state! owner :new-position new-position)
-      (tap movement user-movement))))
+    (let [item-move (om/get-state owner :item-move)
+          offset (merge-with - (e-position e) current-position)]
+      (om/set-state! owner :new-position #(merge-with - % offset))
+      (tap movement item-move))))
 
 (defn touch-start
   [e owner current-position]
@@ -50,8 +41,8 @@
 
 (defn move-end
   [owner cursor position-cursor]
-  (let [user-movement (om/get-state owner :user-movement)]
-    (untap movement user-movement)
+  (let [item-move (om/get-state owner :item-move)]
+    (untap movement item-move)
     (om/update! cursor position-cursor (om/get-state owner :position))
     (om/set-state! owner :new-position nil)))
 
@@ -68,13 +59,13 @@
       om/IInitState
       (init-state [_]
         {:position (get-in item position-cursor)
-         :user-movement (chan)
+         :item-move (chan)
          :draggable (chan)
          :disabled false
          :new-position nil})
       om/IWillMount
       (will-mount [_]
-        (let [position (om/get-state owner :user-movement)]
+        (let [position (om/get-state owner :item-move)]
           (go (while true
             (let [mouse (<! position)
                   new-position (om/get-state owner :new-position)]
