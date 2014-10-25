@@ -5,16 +5,23 @@
   (:require-macros [cljs.core.async.macros :as am :refer [go]]))
 
 (def position-chan (chan (sliding-buffer 1)))
-(def mouse-mult (mult position-chan))
+(def movement (mult position-chan))
+
+(defn e-position
+  [e]
+  {:left (.-clientX e) :top (.-clientY e)})
 
 (defn touch-move
   [e]
   (.preventDefault e)
-  (let [touch (aget (.-changedTouches e) 0)]
-    {:left (.-clientX touch) :top (.-clientY touch)}))
+  (e-position (aget (.-changedTouches e) 0)))
 
-(.addEventListener js/window "mousemove" #(put! position-chan {:left (.-clientX %) :top (.-clientY %)}))
-(.addEventListener js/window "touchmove" #(put! position-chan (touch-move %)))
+(defn track-movement
+  [e extract-pos]
+  (put! position-chan (extract-pos e)))
+
+(.addEventListener js/window "mousemove" #(track-movement % e-position))
+(.addEventListener js/window "touchmove" #(track-movement % touch-move))
 
 (defn target-position
   [e]
@@ -31,7 +38,7 @@
                          {:top (- (mouse :top) (offset :top))
                           :left (- (mouse :left) (offset :left))})]
       (om/set-state! owner :new-position new-position)
-      (tap mouse-mult user-movement))))
+      (tap movement user-movement))))
 
 (defn touch-start
   [e owner current-position]
@@ -44,7 +51,7 @@
 (defn move-end
   [owner cursor position-cursor]
   (let [user-movement (om/get-state owner :user-movement)]
-    (untap mouse-mult user-movement)
+    (untap movement user-movement)
     (om/update! cursor position-cursor (om/get-state owner :position))
     (om/set-state! owner :new-position nil)))
 
