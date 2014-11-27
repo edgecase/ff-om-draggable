@@ -12,7 +12,7 @@ Add this to your project:
 (ns example.core
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [ff-draggable.core :refer [draggable-item]]))
+            [ff-om-draggable.core :refer [draggable-item]]))
 
 (def app-state (atom {:body "Hello world" :position {:left 100 :top 200}}))
 
